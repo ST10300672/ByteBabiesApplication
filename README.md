@@ -1,13 +1,13 @@
-# 👶 ByteBabies – Crèche Management Mobile App
+#  ByteBabies – Crèche Management Mobile App
 
 **ByteBabies** is a mobile application designed to streamline daily operations in crèches and early childhood care centers.  
 It connects **Admins**, **Teachers**, and **Parents** through a unified digital platform built with **Android Jetpack Compose** and **Kotlin**.
 
 ---
 
-## 📱 Key Features
+##  Key Features
 
-### 👩‍🏫 Admin Module
+###  Admin Module
 - **Parent & Child Management** – Add, edit, and assign parents, children, and teachers.  
 - **Attendance Tracking** – Mark daily attendance for children.  
 - **Event Management** – Create and announce school events with calendar integration.  
@@ -18,7 +18,7 @@ It connects **Admins**, **Teachers**, and **Parents** through a unified digital 
 
 ---
 
-### 👨‍👩‍👧 Parent Module
+###  Parent Module
 - **Child Profile Access** – View your child’s information, attendance, and assigned teacher.  
 - **Attendance History** – Check attendance records for the month or term.  
 - **Meal Menu & Pre-Orders** – Browse daily meals and pre-order for your child.  
@@ -29,7 +29,7 @@ It connects **Admins**, **Teachers**, and **Parents** through a unified digital 
 
 ---
 
-### ⚙️ General Features
+###  General Features
 - **Secure Authentication** – Role-based login (Admin or Parent).  
 - **Modern UI** – Material 3 design system with dynamic gradients and intuitive navigation.  
 - **Profile Switching** – Quickly sign out and switch between Admin and Parent roles.  
@@ -37,7 +37,7 @@ It connects **Admins**, **Teachers**, and **Parents** through a unified digital 
 
 ---
 
-## 🧱 Tech Stack
+##  Tech Stack
 
 | Component | Technology |
 |------------|-------------|
@@ -52,7 +52,7 @@ It connects **Admins**, **Teachers**, and **Parents** through a unified digital 
 
 ---
 
-## 💾 Folder Structure
+##  Folder Structure
 app/
 ├── data/
 │ └── Repo.kt # In-memory data repository
@@ -67,7 +67,7 @@ app/
 
 ---
 
-## 💡 Setup Instructions
+##  Setup Instructions
 
 1. **Clone or download** the project:
    ```bash
