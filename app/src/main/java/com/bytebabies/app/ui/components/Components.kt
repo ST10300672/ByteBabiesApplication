@@ -7,11 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -21,8 +17,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.bytebabies.app.data.Repo
-import com.bytebabies.app.model.Child
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,10 +43,7 @@ fun TopBar(
             }
         },
         actions = {
-            // Existing custom actions from the caller
             actions()
-
-            // Optional "Switch Profile" button (appears on the right)
             if (showSwitch && onSwitch != null) {
                 Spacer(Modifier.width(8.dp))
                 FilledTonalButton(
@@ -101,7 +92,7 @@ fun bbGradient(primary: Color, secondary: Color): Brush {
     return Brush.linearGradient(
         colors = listOf(primary, secondary),
         start = Offset(0f, 0f),
-        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+        end = Offset(1000f, 1000f) // safer than POSITIVE_INFINITY
     )
 }
 
@@ -161,28 +152,13 @@ fun Dropdown(label: String, items: List<String>, selectedIndex: Int, onSelected:
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             items.forEachIndexed { index, s ->
                 DropdownMenuItem(text = { Text(s) }, onClick = {
-                    onSelected(index); expanded = false
+                    onSelected(index)
+                    expanded = false
                 })
             }
         }
     }
 }
 
-@Composable
-fun ReassignDialog(child: Child, onDismiss: () -> Unit) {
-    var tIdx by remember { mutableStateOf(Repo.teachers.indexOfFirst { it.id == child.teacherId }.coerceAtLeast(0)) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Reassign Teacher") },
-        text = {
-            Dropdown("Teacher", Repo.teachers.map { it.name }, tIdx) { tIdx = it }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                child.teacherId = Repo.teachers[tIdx].id
-                onDismiss()
-            }) { Text("Save") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
-    )
-}
+// Removed ReassignDialog since teachers list is not in memory anymore
+// You can implement this when you fetch teachers from Firebase

@@ -5,27 +5,25 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.bytebabies.app.model.*
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 object Repo {
-    // ---------------- In-memory "DB" ----------------
-    val parents = mutableStateListOf<Parent>()
-    val teachers = mutableStateListOf<Teacher>()
-    val children = mutableStateListOf<Child>()
-    val events = mutableStateListOf<Event>()
-    val attendance = mutableStateListOf<AttendanceRecord>()
-    val messages = mutableStateListOf<Message>()
-    val media = mutableStateListOf<MediaItem>()
-    val meals = mutableStateListOf<Meal>()
-    val orders = mutableStateListOf<MealOrder>()
 
-    // ---------------- Session / Auth-ish ----------------
+    // ---------------- Firebase instances ----------------
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+
+    // ---------------- Session / Auth ----------------
     var currentRole by mutableStateOf<Role?>(null)
     var currentParentId by mutableStateOf<String?>(null)
 
-    // ---------------- PayFast temp state (for checkout) ----------------
-    // These are used by PaymentsScreen → PayfastWebViewScreen
+    // ---------------- PayFast temp state ----------------
     var tempPaymentAmount: BigDecimal? = null
     var tempPaymentChildName: String? = null
 
@@ -34,98 +32,101 @@ object Repo {
         tempPaymentChildName = null
     }
 
-    // ---------------- Seed sample data ----------------
-    fun seed() {
-        if (teachers.isNotEmpty()) return
-
-        val t1 = Teacher(name = "Ms Thandi")
-        val t2 = Teacher(name = "Mr Dlamini")
-        teachers.addAll(listOf(t1, t2))
-
-        val p1 = Parent(
-            name = "Ayesha Khan",
-            email = "ayesha@example.com",
-            phone = "0712345678",
-            consentMedia = true
-        )
-        val p2 = Parent(
-            name = "John Mokoena",
-            email = "john@example.com",
-            phone = "0798765432"
-        )
-        parents.addAll(listOf(p1, p2))
-
-        val c1 = Child(
-            name = "Zara Khan",
-            parentId = p1.id,
-            teacherId = t1.id,
-            allergies = "Peanuts",
-            medicalNotes = "Uses inhaler"
-        )
-        val c2 = Child(
-            name = "Neo Mokoena",
-            parentId = p2.id,
-            teacherId = t2.id
-        )
-        children.addAll(listOf(c1, c2))
-
-        events.addAll(
-            listOf(
-                Event(
-                    title = "Sports Day",
-                    description = "Bring hats and sunscreen",
-                    date = LocalDate.now().plusDays(7),
-                    location = "School Field"
-                ),
-                Event(
-                    title = "Parents Meeting",
-                    description = "Term planning",
-                    date = LocalDate.now().plusDays(14),
-                    location = "Hall"
-                )
-            )
-        )
-
-        meals.addAll(
-            listOf(
-                Meal(
-                    name = "Chicken Pasta",
-                    ingredients = "Chicken, pasta, tomato",
-                    dietaryInfo = "Contains gluten"
-                ),
-                Meal(
-                    name = "Veggie Wrap",
-                    ingredients = "Tortilla, lettuce, tomato, beans",
-                    dietaryInfo = "Vegetarian"
-                ),
-                Meal(
-                    name = "Fruit Bowl",
-                    ingredients = "Apples, bananas, grapes",
-                    dietaryInfo = "Vegan, gluten-free"
-                )
-            )
-        )
+    // ---------------- Authentication ----------------
+    fun login(email: String, password: String, onResult: (Boolean, String?) -> Unit) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    fetchUserRole(auth.currentUser?.uid ?: "") { success ->
+                        onResult(success, null)
+                    }
+                } else {
+                    onResult(false, task.exception?.message)
+                }
+            }
     }
 
-    // ---------------- Helpers ----------------
-    fun findChildrenOfParent(parentId: String) = children.filter { it.parentId == parentId }
-    fun childName(childId: String) = children.find { it.id == childId }?.name ?: "Unknown"
-    fun mealName(mealId: String) = meals.find { it.id == mealId }?.name ?: "Meal"
+    fun logout() {
+        auth.signOut()
+        currentRole = null
+        currentParentId = null
+    }
+
+    private fun fetchUserRole(uid: String, callback: (Boolean) -> Unit) {
+        db.collection("Users").document(uid).get()
+            .addOnSuccessListener { doc ->
+                currentRole = when (doc.getString("role")) {
+                    "admin" -> Role.ADMIN
+                    "parent" -> Role.PARENT
+                    else -> null
+                }
+                if (currentRole == Role.PARENT) currentParentId = uid
+                callback(true)
+            }
+            .addOnFailureListener { callback(false) }
+    }
+
+    // ---------------- Firestore references ----------------
+    private val parentsRef = db.collection("Parents")
+    private val childrenRef = db.collection("Children")
+    private val eventsRef = db.collection("Events")
+    private val attendanceRef = db.collection("Attendance")
+    private val mealsRef = db.collection("Meals")
+    private val ordersRef = db.collection("MealOrders")
+    private val mediaRef = db.collection("Media")
+    private val messagesRef = db.collection("Messages")
+
+    // ---------------- Firestore helpers ----------------
+    fun fetchChildrenOfParent(parentId: String, callback: (List<Child>) -> Unit) {
+        childrenRef.whereEqualTo("parentId", parentId).get()
+            .addOnSuccessListener { snapshot ->
+                callback(snapshot.toChildList())
+            }
+            .addOnFailureListener { callback(emptyList()) }
+    }
 
     fun markAttendance(childId: String, date: LocalDate, present: Boolean) {
-        val existing = attendance.find { it.childId == childId && it.date == date }
-        if (existing != null) {
-            existing.present = present
-        } else {
-            attendance.add(AttendanceRecord(childId = childId, date = date, present = present))
+        val docId = "${childId}_${date.format(DateTimeFormatter.ISO_DATE)}"
+        val data = mapOf(
+            "childId" to childId,
+            "date" to date.format(DateTimeFormatter.ISO_DATE),
+            "present" to present
+        )
+        attendanceRef.document(docId).set(data)
+    }
+
+    fun fetchAbsentTodayForParent(parentId: String, callback: (List<Child>) -> Unit) {
+        val today = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+        fetchChildrenOfParent(parentId) { kids ->
+            attendanceRef.whereEqualTo("date", today).whereEqualTo("present", false).get()
+                .addOnSuccessListener { snapshot ->
+                    val absentIds = snapshot.documents.mapNotNull { it.getString("childId") }
+                    callback(kids.filter { it.id in absentIds })
+                }
+                .addOnFailureListener { callback(emptyList()) }
         }
     }
 
-    fun absentTodayForParent(parentId: String): List<Child> {
-        val kids = findChildrenOfParent(parentId)
-        return kids.filter { k ->
-            val rec = attendance.find { it.childId == k.id && it.date == LocalDate.now() }
-            rec?.present == false
+    // ---------------- Extensions ----------------
+    private fun QuerySnapshot.toChildList(): List<Child> =
+        documents.map { doc ->
+            Child(
+                id = doc.id,
+                name = doc.getString("name") ?: "",
+                parentId = doc.getString("parentId") ?: "",
+                teacherId = doc.getString("teacherId") ?: "",
+                allergies = doc.getString("allergies") ?: "",
+                medicalNotes = doc.getString("medicalNotes") ?: ""
+            )
         }
-    }
+
+    // ---------------- In-memory seed data ----------------
+    val parents = mutableStateListOf<Parent>()
+    val children = mutableStateListOf<Child>()
+    val events = mutableStateListOf<Event>()
+    val attendance = mutableStateListOf<AttendanceRecord>()
+    val messages = mutableStateListOf<Message>()
+    val media = mutableStateListOf<MediaItem>()
+    val meals = mutableStateListOf<Meal>()
+    val orders = mutableStateListOf<MealOrder>()
 }

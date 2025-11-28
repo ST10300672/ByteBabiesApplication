@@ -10,7 +10,7 @@ import com.bytebabies.app.data.Repo
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Repo.seed()
+        // Removed Repo.seed() since we now rely on Firebase
         setContent {
             ByteBabiesTheme {
                 ByteBabiesNavGraph()
