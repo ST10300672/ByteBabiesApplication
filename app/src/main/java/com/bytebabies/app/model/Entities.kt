@@ -12,11 +12,6 @@ data class Parent(
     var consentMedia: Boolean = false
 )
 
-data class Teacher(
-    val id: String = UUID.randomUUID().toString(),
-    var name: String,
-)
-
 data class Child(
     val id: String = UUID.randomUUID().toString(),
     var name: String,

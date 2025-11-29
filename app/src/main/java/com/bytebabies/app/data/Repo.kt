@@ -60,14 +60,17 @@ object Repo {
                     "parent" -> Role.PARENT
                     else -> null
                 }
-                if (currentRole == Role.PARENT) currentParentId = uid
+                if (currentRole == Role.PARENT) currentParentId = uid else currentParentId = null
                 callback(true)
             }
             .addOnFailureListener { callback(false) }
     }
 
-    // ---------------- Firestore references ----------------
+
+    // ---------------- Firestore refs ----------------
+    private val usersRef = db.collection("Users")
     private val parentsRef = db.collection("Parents")
+    private val teachersRef = db.collection("Teachers")
     private val childrenRef = db.collection("Children")
     private val eventsRef = db.collection("Events")
     private val attendanceRef = db.collection("Attendance")
@@ -76,16 +79,101 @@ object Repo {
     private val mediaRef = db.collection("Media")
     private val messagesRef = db.collection("Messages")
 
-    // ---------------- Firestore helpers ----------------
-    fun fetchChildrenOfParent(parentId: String, callback: (List<Child>) -> Unit) {
-        childrenRef.whereEqualTo("parentId", parentId).get()
-            .addOnSuccessListener { snapshot ->
-                callback(snapshot.toChildList())
-            }
-            .addOnFailureListener { callback(emptyList()) }
+    // ---------------- Admin: Teachers CRUD ----------------
+
+    // CREATE teacher
+    fun createTeacher(
+        name: String,
+        email: String,
+        phone: String,
+        assignedClass: String,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
+        val docId = teachersRef.document().id
+        val teacher = Teacher(
+            id = docId,
+            name = name,
+            email = email,
+            phone = phone,
+            assignedClass = assignedClass
+        )
+
+        teachersRef.document(docId).set(teacher)
+            .addOnSuccessListener { onComplete(true, null) }
+            .addOnFailureListener { e -> onComplete(false, e.message) }
     }
 
-    fun markAttendance(childId: String, date: LocalDate, present: Boolean) {
+    // READ teachers
+    fun fetchTeachers(onResult: (List<Teacher>) -> Unit) {
+        teachersRef.get()
+            .addOnSuccessListener { snap -> onResult(snap.toTeacherList()) }
+            .addOnFailureListener { onResult(emptyList()) }
+    }
+
+    // UPDATE teacher
+    fun updateTeacher(
+        id: String,
+        name: String,
+        email: String,
+        phone: String,
+        assignedClass: String,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
+        val updateData = mapOf(
+            "name" to name,
+            "email" to email,
+            "phone" to phone,
+            "assignedClass" to assignedClass
+        )
+
+        teachersRef.document(id).update(updateData)
+            .addOnSuccessListener { onComplete(true, null) }
+            .addOnFailureListener { e -> onComplete(false, e.message) }
+    }
+
+    // DELETE teacher
+    fun deleteTeacher(id: String, onComplete: (Boolean, String?) -> Unit) {
+        teachersRef.document(id).delete()
+            .addOnSuccessListener { onComplete(true, null) }
+            .addOnFailureListener { e -> onComplete(false, e.message) }
+    }
+
+
+
+    // ---------------- Admin: Children CRUD ----------------
+    fun createChild(name: String, parentId: String, teacherId: String, allergies: String, medicalNotes: String, onComplete: (Boolean, String?) -> Unit) {
+        val data = mapOf(
+            "name" to name,
+            "parentId" to parentId,
+            "teacherId" to teacherId,
+            "allergies" to allergies,
+            "medicalNotes" to medicalNotes
+        )
+        childrenRef.add(data)
+            .addOnSuccessListener { onComplete(true, null) }
+            .addOnFailureListener { e -> onComplete(false, e.message) }
+    }
+
+    fun fetchChildren(onResult: (List<Child>) -> Unit) {
+        childrenRef.get()
+            .addOnSuccessListener { snap -> onResult(snap.toChildList()) }
+            .addOnFailureListener { onResult(emptyList()) }
+    }
+
+    fun updateChild(id: String, updates: Map<String, Any>, onComplete: (Boolean, String?) -> Unit) {
+        childrenRef.document(id).update(updates)
+            .addOnSuccessListener { onComplete(true, null) }
+            .addOnFailureListener { e -> onComplete(false, e.message) }
+    }
+
+    fun deleteChild(id: String, onComplete: (Boolean, String?) -> Unit) {
+        childrenRef.document(id).delete()
+            .addOnSuccessListener { onComplete(true, null) }
+            .addOnFailureListener { e -> onComplete(false, e.message) }
+    }
+
+    // ---------------- Attendance ----------------
+    fun markAttendance(childId: String, date: LocalDate, present: Boolean, onComplete: ((Boolean, String?) -> Unit)? = null) {
         val docId = "${childId}_${date.format(DateTimeFormatter.ISO_DATE)}"
         val data = mapOf(
             "childId" to childId,
@@ -93,21 +181,91 @@ object Repo {
             "present" to present
         )
         attendanceRef.document(docId).set(data)
+            .addOnSuccessListener { onComplete?.invoke(true, null) }
+            .addOnFailureListener { e -> onComplete?.invoke(false, e.message) }
     }
 
-    fun fetchAbsentTodayForParent(parentId: String, callback: (List<Child>) -> Unit) {
-        val today = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
-        fetchChildrenOfParent(parentId) { kids ->
-            attendanceRef.whereEqualTo("date", today).whereEqualTo("present", false).get()
-                .addOnSuccessListener { snapshot ->
-                    val absentIds = snapshot.documents.mapNotNull { it.getString("childId") }
-                    callback(kids.filter { it.id in absentIds })
+    fun fetchAttendanceForDate(date: LocalDate, onResult: (List<AttendanceRecord>) -> Unit) {
+        val today = date.format(DateTimeFormatter.ISO_DATE)
+        attendanceRef.whereEqualTo("date", today).get()
+            .addOnSuccessListener { snap ->
+                val list = snap.documents.map { d ->
+                    AttendanceRecord(
+                        id = d.id,
+                        childId = d.getString("childId") ?: "",
+                        date = LocalDate.parse(d.getString("date")),
+                        present = d.getBoolean("present") ?: false
+                    )
                 }
-                .addOnFailureListener { callback(emptyList()) }
-        }
+                onResult(list)
+            }
+            .addOnFailureListener { onResult(emptyList()) }
     }
 
-    // ---------------- Extensions ----------------
+    fun fetchAttendanceForChild(childId: String, onResult: (List<AttendanceRecord>) -> Unit) {
+        attendanceRef.whereEqualTo("childId", childId).get()
+            .addOnSuccessListener { snap ->
+                val list = snap.documents.map { d ->
+                    AttendanceRecord(
+                        id = d.id,
+                        childId = d.getString("childId") ?: "",
+                        date = LocalDate.parse(d.getString("date")),
+                        present = d.getBoolean("present") ?: false
+                    )
+                }
+                onResult(list)
+            }
+            .addOnFailureListener { onResult(emptyList()) }
+    }
+
+    // ---------------- Events ----------------
+    fun createEvent(title: String, description: String, date: LocalDate, location: String, onComplete: (Boolean, String?) -> Unit) {
+        val data = mapOf(
+            "title" to title,
+            "description" to description,
+            "date" to date.format(DateTimeFormatter.ISO_DATE),
+            "location" to location
+        )
+        eventsRef.add(data)
+            .addOnSuccessListener { onComplete(true, null) }
+            .addOnFailureListener { e -> onComplete(false, e.message) }
+    }
+
+    fun fetchEvents(onResult: (List<Event>) -> Unit) {
+        eventsRef.get()
+            .addOnSuccessListener { snap -> onResult(snap.toEventList()) }
+            .addOnFailureListener { onResult(emptyList()) }
+    }
+
+    // ---------------- Messages / Announcements ----------------
+    // Admin posts announcement -> toAdmin=false
+    fun postAnnouncement(content: String, onComplete: (Boolean, String?) -> Unit) {
+        val data = mapOf(
+            "fromParentId" to null,
+            "toAdmin" to false,
+            "content" to content,
+            "timestamp" to java.time.LocalDateTime.now().toString()
+        )
+        messagesRef.add(data)
+            .addOnSuccessListener { onComplete(true, null) }
+            .addOnFailureListener { e -> onComplete(false, e.message) }
+    }
+
+    // Fetch messages sent by parents (inbox for admin)
+    fun fetchParentMessages(onResult: (List<Message>) -> Unit) {
+        messagesRef.whereEqualTo("toAdmin", true).get()
+            .addOnSuccessListener { snap -> onResult(snap.toMessageList()) }
+            .addOnFailureListener { onResult(emptyList()) }
+    }
+
+    // Fetch announcements (admin->parents)
+    fun fetchAnnouncements(onResult: (List<Message>) -> Unit) {
+        messagesRef.whereEqualTo("toAdmin", false).get()
+            .addOnSuccessListener { snap -> onResult(snap.toMessageList()) }
+            .addOnFailureListener { onResult(emptyList()) }
+    }
+
+    // ---------------- Helpers: snapshot -> models ----------------
     private fun QuerySnapshot.toChildList(): List<Child> =
         documents.map { doc ->
             Child(
@@ -120,13 +278,47 @@ object Repo {
             )
         }
 
-    // ---------------- In-memory seed data ----------------
-    val parents = mutableStateListOf<Parent>()
-    val children = mutableStateListOf<Child>()
-    val events = mutableStateListOf<Event>()
-    val attendance = mutableStateListOf<AttendanceRecord>()
-    val messages = mutableStateListOf<Message>()
-    val media = mutableStateListOf<MediaItem>()
-    val meals = mutableStateListOf<Meal>()
-    val orders = mutableStateListOf<MealOrder>()
+    // Snapshot → Teacher model
+    private fun QuerySnapshot.toTeacherList(): List<Teacher> =
+        documents.map { doc ->
+            Teacher(
+                id = doc.id,
+                name = doc.getString("name") ?: "",
+                email = doc.getString("email") ?: "",
+                phone = doc.getString("phone") ?: "",
+                assignedClass = doc.getString("assignedClass") ?: ""
+            )
+        }
+
+
+
+
+    private fun QuerySnapshot.toEventList(): List<Event> =
+        documents.map { doc ->
+            Event(
+                id = doc.id,
+                title = doc.getString("title") ?: "",
+                description = doc.getString("description") ?: "",
+                date = LocalDate.parse(doc.getString("date")),
+                location = doc.getString("location") ?: ""
+            )
+        }
+
+    private fun QuerySnapshot.toMessageList(): List<Message> =
+        documents.map { doc ->
+            Message(
+                id = doc.id,
+                fromParentId = doc.getString("fromParentId"),
+                toAdmin = doc.getBoolean("toAdmin") ?: false,
+                content = doc.getString("content") ?: "",
+                timestamp = java.time.LocalDateTime.parse(doc.getString("timestamp"))
+            )
+        }
+
+    // ---------------- In-memory lists (UI convenience caches, optional) ----------------
+    // Use these only for fast UI binding; keep them updated from Firestore calls.
+    val uiTeachers = mutableStateListOf<Teacher>()
+    val uiChildren = mutableStateListOf<Child>()
+    val uiEvents = mutableStateListOf<Event>()
+    val uiMessages = mutableStateListOf<Message>()
 }

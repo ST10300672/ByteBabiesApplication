@@ -6,12 +6,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.bytebabies.app.navigation.Route
 import com.bytebabies.app.ui.components.FeatureCard
 import com.bytebabies.app.ui.components.TopBar
 import com.bytebabies.app.ui.components.bbGradient
-import androidx.compose.ui.graphics.Color
 
 data class AdminFeature(
     val title: String,
@@ -24,53 +25,67 @@ data class AdminFeature(
 @Composable
 fun AdminDashboardScreen(nav: NavHostController) {
     val features = listOf(
+
+        // --- NEW: Manage Teachers wired properly ---
         AdminFeature(
-            "Manage Parents & Children",
-            "View and edit parent & child profiles",
-            MaterialTheme.colorScheme.primary,
-            MaterialTheme.colorScheme.primaryContainer,
-            "manageParents"
+            title = "Manage Teachers",
+            description = "Add and remove teachers",
+            primaryColor = MaterialTheme.colorScheme.primary,
+            secondaryColor = MaterialTheme.colorScheme.primaryContainer,
+            route = Route.AdminTeachers.r
         ),
+
+        // Future features — these remain but point to real routes later
         AdminFeature(
-            "Attendance",
-            "Mark and review attendance",
-            MaterialTheme.colorScheme.secondary,
-            MaterialTheme.colorScheme.secondaryContainer,
-            "attendance"
+            title = "Manage Parents & Children",
+            description = "View and edit parent & child profiles",
+            primaryColor = MaterialTheme.colorScheme.secondary,
+            secondaryColor = MaterialTheme.colorScheme.secondaryContainer,
+            route = Route.AdminHome.r   // placeholder until feature is implemented
         ),
+
         AdminFeature(
-            "Events",
-            "Create and manage events",
-            MaterialTheme.colorScheme.tertiary,
-            MaterialTheme.colorScheme.tertiaryContainer,
-            "events"
+            title = "Attendance",
+            description = "Mark and review attendance",
+            primaryColor = MaterialTheme.colorScheme.tertiary,
+            secondaryColor = MaterialTheme.colorScheme.tertiaryContainer,
+            route = Route.AdminHome.r   // placeholder
         ),
+
         AdminFeature(
-            "Meals & Orders",
-            "Manage meals and view orders",
-            MaterialTheme.colorScheme.primary,
-            MaterialTheme.colorScheme.primaryContainer,
-            "meals"
+            title = "Events",
+            description = "Create and manage events",
+            primaryColor = MaterialTheme.colorScheme.primary,
+            secondaryColor = MaterialTheme.colorScheme.primaryContainer,
+            route = Route.AdminHome.r   // placeholder
         ),
+
         AdminFeature(
-            "Messages & Announcements",
-            "Send updates to parents",
-            MaterialTheme.colorScheme.secondary,
-            MaterialTheme.colorScheme.secondaryContainer,
-            "messages"
+            title = "Meals & Orders",
+            description = "Manage meals and view orders",
+            primaryColor = MaterialTheme.colorScheme.secondary,
+            secondaryColor = MaterialTheme.colorScheme.secondaryContainer,
+            route = Route.AdminHome.r   // placeholder
         ),
+
         AdminFeature(
-            "Media Uploads",
-            "Share photos & videos with consent",
-            MaterialTheme.colorScheme.tertiary,
-            MaterialTheme.colorScheme.tertiaryContainer,
-            "media"
+            title = "Messages & Announcements",
+            description = "Send updates to parents",
+            primaryColor = MaterialTheme.colorScheme.tertiary,
+            secondaryColor = MaterialTheme.colorScheme.tertiaryContainer,
+            route = Route.AdminHome.r   // placeholder
+        ),
+
+        AdminFeature(
+            title = "Media Uploads",
+            description = "Share photos & videos with consent",
+            primaryColor = MaterialTheme.colorScheme.primary,
+            secondaryColor = MaterialTheme.colorScheme.primaryContainer,
+            route = Route.AdminHome.r   // placeholder
         )
     )
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    Column(modifier = Modifier.fillMaxSize()) {
         TopBar(title = "Admin Dashboard")
 
         LazyColumn(
