@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.bytebabies.app.data.Repo
 import com.bytebabies.app.navigation.Route
+import com.bytebabies.app.ui.components.OutlinedTextFieldFull
 
 @Composable
 fun LoginScreen(nav: NavHostController) {
@@ -29,28 +30,23 @@ fun LoginScreen(nav: NavHostController) {
 
         Spacer(Modifier.height(32.dp))
 
-        OutlinedTextField(
+        // -------- Email Field --------
+        OutlinedTextFieldFull(
             value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            singleLine = true,
-            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                keyboardType = KeyboardType.Email
-            ),
-            modifier = Modifier.fillMaxWidth()
+            onVal = { email = it },
+            label = "Email",
+            keyboardType = KeyboardType.Email
         )
 
         Spacer(Modifier.height(16.dp))
 
-        OutlinedTextField(
+        // -------- Password Field --------
+        OutlinedTextFieldFull(
             value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            singleLine = true,
-            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                keyboardType = KeyboardType.Password
-            ),
-            modifier = Modifier.fillMaxWidth()
+            onVal = { password = it },
+            label = "Password",
+            keyboardType = KeyboardType.Password,
+            isPassword = true
         )
 
         Spacer(Modifier.height(24.dp))
@@ -63,6 +59,7 @@ fun LoginScreen(nav: NavHostController) {
             )
         }
 
+        // -------- Login Button --------
         Button(
             onClick = {
                 loading = true
@@ -88,6 +85,16 @@ fun LoginScreen(nav: NavHostController) {
             enabled = !loading
         ) {
             Text(if (loading) "Logging in..." else "Login")
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // -------- Register Button --------
+        TextButton(
+            onClick = { nav.navigate(Route.ParentRegister.r) },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
+            Text("Register as a new parent")
         }
     }
 }

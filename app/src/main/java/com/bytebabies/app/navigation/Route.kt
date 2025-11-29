@@ -4,11 +4,10 @@ sealed class Route(val r: String) {
 
     // ---------- Auth ----------
     data object Login : Route("login")
+    data object ParentRegister : Route("parent_register")
 
     // ---------- Admin ----------
     data object AdminHome : Route("admin_home")
-
-    // ---------- Admin_Teachers ----------
     data object AdminTeachers : Route("admin_teachers")
 
     // ---------- Parent ----------

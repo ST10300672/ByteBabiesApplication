@@ -6,9 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.bytebabies.app.model.*
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -60,16 +58,14 @@ object Repo {
                     "parent" -> Role.PARENT
                     else -> null
                 }
-                if (currentRole == Role.PARENT) currentParentId = uid else currentParentId = null
+                currentParentId = if (currentRole == Role.PARENT) uid else null
                 callback(true)
             }
             .addOnFailureListener { callback(false) }
     }
 
-
     // ---------------- Firestore refs ----------------
     private val usersRef = db.collection("Users")
-    private val parentsRef = db.collection("Parents")
     private val teachersRef = db.collection("Teachers")
     private val childrenRef = db.collection("Children")
     private val eventsRef = db.collection("Events")
@@ -79,9 +75,38 @@ object Repo {
     private val mediaRef = db.collection("Media")
     private val messagesRef = db.collection("Messages")
 
-    // ---------------- Admin: Teachers CRUD ----------------
+    // ---------------- Parent Registration ----------------
+    fun registerParent(
+        name: String,
+        email: String,
+        phone: String,
+        password: String,
+        consentMedia: Boolean = false,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnSuccessListener { result ->
+                val uid = result.user?.uid ?: ""
+                if (uid.isNotEmpty()) {
+                    val parentData = mapOf(
+                        "id" to uid,
+                        "name" to name,
+                        "email" to email,
+                        "phone" to phone,
+                        "consentMedia" to consentMedia,
+                        "role" to "parent"
+                    )
+                    usersRef.document(uid).set(parentData)
+                        .addOnSuccessListener { onComplete(true, null) }
+                        .addOnFailureListener { e -> onComplete(false, e.message) }
+                } else {
+                    onComplete(false, "Failed to get UID from Firebase Auth")
+                }
+            }
+            .addOnFailureListener { e -> onComplete(false, e.message) }
+    }
 
-    // CREATE teacher
+    // ---------------- Admin: Teachers CRUD ----------------
     fun createTeacher(
         name: String,
         email: String,
@@ -97,20 +122,17 @@ object Repo {
             phone = phone,
             assignedClass = assignedClass
         )
-
         teachersRef.document(docId).set(teacher)
             .addOnSuccessListener { onComplete(true, null) }
             .addOnFailureListener { e -> onComplete(false, e.message) }
     }
 
-    // READ teachers
     fun fetchTeachers(onResult: (List<Teacher>) -> Unit) {
         teachersRef.get()
             .addOnSuccessListener { snap -> onResult(snap.toTeacherList()) }
             .addOnFailureListener { onResult(emptyList()) }
     }
 
-    // UPDATE teacher
     fun updateTeacher(
         id: String,
         name: String,
@@ -125,23 +147,26 @@ object Repo {
             "phone" to phone,
             "assignedClass" to assignedClass
         )
-
         teachersRef.document(id).update(updateData)
             .addOnSuccessListener { onComplete(true, null) }
             .addOnFailureListener { e -> onComplete(false, e.message) }
     }
 
-    // DELETE teacher
     fun deleteTeacher(id: String, onComplete: (Boolean, String?) -> Unit) {
         teachersRef.document(id).delete()
             .addOnSuccessListener { onComplete(true, null) }
             .addOnFailureListener { e -> onComplete(false, e.message) }
     }
 
-
-
     // ---------------- Admin: Children CRUD ----------------
-    fun createChild(name: String, parentId: String, teacherId: String, allergies: String, medicalNotes: String, onComplete: (Boolean, String?) -> Unit) {
+    fun createChild(
+        name: String,
+        parentId: String,
+        teacherId: String,
+        allergies: String,
+        medicalNotes: String,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
         val data = mapOf(
             "name" to name,
             "parentId" to parentId,
@@ -173,7 +198,12 @@ object Repo {
     }
 
     // ---------------- Attendance ----------------
-    fun markAttendance(childId: String, date: LocalDate, present: Boolean, onComplete: ((Boolean, String?) -> Unit)? = null) {
+    fun markAttendance(
+        childId: String,
+        date: LocalDate,
+        present: Boolean,
+        onComplete: ((Boolean, String?) -> Unit)? = null
+    ) {
         val docId = "${childId}_${date.format(DateTimeFormatter.ISO_DATE)}"
         val data = mapOf(
             "childId" to childId,
@@ -219,7 +249,13 @@ object Repo {
     }
 
     // ---------------- Events ----------------
-    fun createEvent(title: String, description: String, date: LocalDate, location: String, onComplete: (Boolean, String?) -> Unit) {
+    fun createEvent(
+        title: String,
+        description: String,
+        date: LocalDate,
+        location: String,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
         val data = mapOf(
             "title" to title,
             "description" to description,
@@ -238,7 +274,6 @@ object Repo {
     }
 
     // ---------------- Messages / Announcements ----------------
-    // Admin posts announcement -> toAdmin=false
     fun postAnnouncement(content: String, onComplete: (Boolean, String?) -> Unit) {
         val data = mapOf(
             "fromParentId" to null,
@@ -251,14 +286,12 @@ object Repo {
             .addOnFailureListener { e -> onComplete(false, e.message) }
     }
 
-    // Fetch messages sent by parents (inbox for admin)
     fun fetchParentMessages(onResult: (List<Message>) -> Unit) {
         messagesRef.whereEqualTo("toAdmin", true).get()
             .addOnSuccessListener { snap -> onResult(snap.toMessageList()) }
             .addOnFailureListener { onResult(emptyList()) }
     }
 
-    // Fetch announcements (admin->parents)
     fun fetchAnnouncements(onResult: (List<Message>) -> Unit) {
         messagesRef.whereEqualTo("toAdmin", false).get()
             .addOnSuccessListener { snap -> onResult(snap.toMessageList()) }
@@ -266,7 +299,7 @@ object Repo {
     }
 
     // ---------------- Helpers: snapshot -> models ----------------
-    private fun QuerySnapshot.toChildList(): List<Child> =
+    private fun com.google.firebase.firestore.QuerySnapshot.toChildList(): List<Child> =
         documents.map { doc ->
             Child(
                 id = doc.id,
@@ -278,8 +311,7 @@ object Repo {
             )
         }
 
-    // Snapshot → Teacher model
-    private fun QuerySnapshot.toTeacherList(): List<Teacher> =
+    private fun com.google.firebase.firestore.QuerySnapshot.toTeacherList(): List<Teacher> =
         documents.map { doc ->
             Teacher(
                 id = doc.id,
@@ -290,10 +322,7 @@ object Repo {
             )
         }
 
-
-
-
-    private fun QuerySnapshot.toEventList(): List<Event> =
+    private fun com.google.firebase.firestore.QuerySnapshot.toEventList(): List<Event> =
         documents.map { doc ->
             Event(
                 id = doc.id,
@@ -304,7 +333,7 @@ object Repo {
             )
         }
 
-    private fun QuerySnapshot.toMessageList(): List<Message> =
+    private fun com.google.firebase.firestore.QuerySnapshot.toMessageList(): List<Message> =
         documents.map { doc ->
             Message(
                 id = doc.id,
@@ -315,8 +344,7 @@ object Repo {
             )
         }
 
-    // ---------------- In-memory lists (UI convenience caches, optional) ----------------
-    // Use these only for fast UI binding; keep them updated from Firestore calls.
+    // ---------------- In-memory lists (UI convenience caches) ----------------
     val uiTeachers = mutableStateListOf<Teacher>()
     val uiChildren = mutableStateListOf<Child>()
     val uiEvents = mutableStateListOf<Event>()

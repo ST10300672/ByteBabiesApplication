@@ -26,7 +26,7 @@ data class AdminFeature(
 fun AdminDashboardScreen(nav: NavHostController) {
     val features = listOf(
 
-        // --- NEW: Manage Teachers wired properly ---
+        // Manage Teachers
         AdminFeature(
             title = "Manage Teachers",
             description = "Add and remove teachers",
@@ -35,15 +35,16 @@ fun AdminDashboardScreen(nav: NavHostController) {
             route = Route.AdminTeachers.r
         ),
 
-        // Future features — these remain but point to real routes later
+        // Manage Parents
         AdminFeature(
-            title = "Manage Parents & Children",
-            description = "View and edit parent & child profiles",
+            title = "Manage Parents",
+            description = "Add and edit parent profiles",
             primaryColor = MaterialTheme.colorScheme.secondary,
             secondaryColor = MaterialTheme.colorScheme.secondaryContainer,
-            route = Route.AdminHome.r   // placeholder until feature is implemented
+            route = "admin_parents"  // NEW: navigate to AdminParentsScreen
         ),
 
+        // Attendance
         AdminFeature(
             title = "Attendance",
             description = "Mark and review attendance",
@@ -52,6 +53,7 @@ fun AdminDashboardScreen(nav: NavHostController) {
             route = Route.AdminHome.r   // placeholder
         ),
 
+        // Events
         AdminFeature(
             title = "Events",
             description = "Create and manage events",
@@ -60,6 +62,7 @@ fun AdminDashboardScreen(nav: NavHostController) {
             route = Route.AdminHome.r   // placeholder
         ),
 
+        // Meals & Orders
         AdminFeature(
             title = "Meals & Orders",
             description = "Manage meals and view orders",
@@ -68,6 +71,7 @@ fun AdminDashboardScreen(nav: NavHostController) {
             route = Route.AdminHome.r   // placeholder
         ),
 
+        // Messages & Announcements
         AdminFeature(
             title = "Messages & Announcements",
             description = "Send updates to parents",
@@ -76,6 +80,7 @@ fun AdminDashboardScreen(nav: NavHostController) {
             route = Route.AdminHome.r   // placeholder
         ),
 
+        // Media Uploads
         AdminFeature(
             title = "Media Uploads",
             description = "Share photos & videos with consent",

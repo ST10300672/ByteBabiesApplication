@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,6 +16,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -71,31 +75,62 @@ fun LabeledText(label: String, value: String) {
     }
 }
 
+// ---------------- Updated OutlinedTextFieldFull ----------------
 @Composable
 fun OutlinedTextFieldFull(
     value: String,
     onVal: (String) -> Unit,
     label: String,
-    type: androidx.compose.ui.text.input.KeyboardType = androidx.compose.ui.text.input.KeyboardType.Text
+    keyboardType: androidx.compose.ui.text.input.KeyboardType = androidx.compose.ui.text.input.KeyboardType.Text,
+    isPassword: Boolean = false
 ) {
+    var passwordVisible by remember { mutableStateOf(false) }
+
     OutlinedTextField(
-        modifier = Modifier.fillMaxWidth(),
         value = value,
         onValueChange = onVal,
         label = { Text(label) },
-        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = type)
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        visualTransformation = if (isPassword && !passwordVisible)
+            androidx.compose.ui.text.input.PasswordVisualTransformation()
+        else
+            androidx.compose.ui.text.input.VisualTransformation.None,
+        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+            keyboardType = if (isPassword)
+                androidx.compose.ui.text.input.KeyboardType.Password
+            else
+                keyboardType
+        ),
+        trailingIcon = {
+            if (isPassword) {
+                val icon = if (passwordVisible)
+                    androidx.compose.material.icons.Icons.Default.Visibility
+                else
+                    androidx.compose.material.icons.Icons.Default.VisibilityOff
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                    )
+                }
+            }
+        }
     )
 }
 
+
+// ---------------- Gradients ----------------
 @Composable
 fun bbGradient(primary: Color, secondary: Color): Brush {
     return Brush.linearGradient(
         colors = listOf(primary, secondary),
         start = Offset(0f, 0f),
-        end = Offset(1000f, 1000f) // safer than POSITIVE_INFINITY
+        end = Offset(1000f, 1000f)
     )
 }
 
+// ---------------- Feature Card ----------------
 @Composable
 fun FeatureCard(
     title: String,
@@ -136,6 +171,7 @@ fun FeatureCard(
     }
 }
 
+// ---------------- Dropdown ----------------
 @Composable
 fun Dropdown(label: String, items: List<String>, selectedIndex: Int, onSelected: (Int) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
@@ -159,6 +195,3 @@ fun Dropdown(label: String, items: List<String>, selectedIndex: Int, onSelected:
         }
     }
 }
-
-// Removed ReassignDialog since teachers list is not in memory anymore
-// You can implement this when you fetch teachers from Firebase
