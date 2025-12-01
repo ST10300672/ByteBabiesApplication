@@ -35,13 +35,31 @@ fun AdminDashboardScreen(nav: NavHostController) {
             route = Route.AdminTeachers.r
         ),
 
+        // Add Child
+        AdminFeature(
+            title = "Add Child",
+            description = "Register a child and assign parent + teacher",
+            primaryColor = MaterialTheme.colorScheme.primary,
+            secondaryColor = MaterialTheme.colorScheme.primaryContainer,
+            route = Route.AdminAddChild.r
+        ),
+
+        // View Children
+        AdminFeature(
+            title = "View Children",
+            description = "View all registered children, edit or delete",
+            primaryColor = MaterialTheme.colorScheme.secondary,
+            secondaryColor = MaterialTheme.colorScheme.secondaryContainer,
+            route = "admin_view_children" // NEW route for ViewChildrenScreen
+        ),
+
         // Manage Parents
         AdminFeature(
             title = "Manage Parents",
             description = "Add and edit parent profiles",
             primaryColor = MaterialTheme.colorScheme.secondary,
             secondaryColor = MaterialTheme.colorScheme.secondaryContainer,
-            route = "admin_parents"  // NEW: navigate to AdminParentsScreen
+            route = "admin_parents" // placeholder for parent screen
         ),
 
         // Attendance
@@ -50,7 +68,7 @@ fun AdminDashboardScreen(nav: NavHostController) {
             description = "Mark and review attendance",
             primaryColor = MaterialTheme.colorScheme.tertiary,
             secondaryColor = MaterialTheme.colorScheme.tertiaryContainer,
-            route = Route.AdminHome.r   // placeholder
+            route = Route.AdminHome.r // placeholder
         ),
 
         // Events
@@ -59,7 +77,7 @@ fun AdminDashboardScreen(nav: NavHostController) {
             description = "Create and manage events",
             primaryColor = MaterialTheme.colorScheme.primary,
             secondaryColor = MaterialTheme.colorScheme.primaryContainer,
-            route = Route.AdminHome.r   // placeholder
+            route = Route.AdminHome.r // placeholder
         ),
 
         // Meals & Orders
@@ -68,7 +86,7 @@ fun AdminDashboardScreen(nav: NavHostController) {
             description = "Manage meals and view orders",
             primaryColor = MaterialTheme.colorScheme.secondary,
             secondaryColor = MaterialTheme.colorScheme.secondaryContainer,
-            route = Route.AdminHome.r   // placeholder
+            route = Route.AdminHome.r // placeholder
         ),
 
         // Messages & Announcements
@@ -77,7 +95,7 @@ fun AdminDashboardScreen(nav: NavHostController) {
             description = "Send updates to parents",
             primaryColor = MaterialTheme.colorScheme.tertiary,
             secondaryColor = MaterialTheme.colorScheme.tertiaryContainer,
-            route = Route.AdminHome.r   // placeholder
+            route = Route.AdminHome.r // placeholder
         ),
 
         // Media Uploads
@@ -86,7 +104,7 @@ fun AdminDashboardScreen(nav: NavHostController) {
             description = "Share photos & videos with consent",
             primaryColor = MaterialTheme.colorScheme.primary,
             secondaryColor = MaterialTheme.colorScheme.primaryContainer,
-            route = Route.AdminHome.r   // placeholder
+            route = Route.AdminHome.r // placeholder
         )
     )
 

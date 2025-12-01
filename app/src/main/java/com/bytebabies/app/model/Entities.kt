@@ -17,6 +17,8 @@ data class Child(
     var name: String,
     var parentId: String,
     var teacherId: String,
+    var age: Int = 0,
+    var emergencyContact: String = "",
     var allergies: String = "",
     var medicalNotes: String = ""
 )

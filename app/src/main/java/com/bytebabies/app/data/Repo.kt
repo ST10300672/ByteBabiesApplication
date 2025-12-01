@@ -106,6 +106,27 @@ object Repo {
             .addOnFailureListener { e -> onComplete(false, e.message) }
     }
 
+    // ---------------- Fetch Parents ----------------
+    fun fetchParents(onResult: (List<Parent>) -> Unit) {
+        usersRef.whereEqualTo("role", "parent").get()
+            .addOnSuccessListener { snap ->
+                val list = snap.documents.map { doc ->
+                    Parent(
+                        id = doc.id,
+                        name = doc.getString("name") ?: "",
+                        email = doc.getString("email") ?: "",
+                        phone = doc.getString("phone") ?: "",
+                        consentMedia = doc.getBoolean("consentMedia") ?: false
+                    )
+                }
+                onResult(list)
+            }
+            .addOnFailureListener { onResult(emptyList()) }
+    }
+
+    // 🔥 NEW — Alias for AddChildScreen compatibility
+    fun getAllParents(onResult: (List<Parent>) -> Unit) = fetchParents(onResult)
+
     // ---------------- Admin: Teachers CRUD ----------------
     fun createTeacher(
         name: String,
@@ -132,6 +153,9 @@ object Repo {
             .addOnSuccessListener { snap -> onResult(snap.toTeacherList()) }
             .addOnFailureListener { onResult(emptyList()) }
     }
+
+    // 🔥 NEW — Alias for AddChildScreen compatibility
+    fun getAllTeachers(onResult: (List<Teacher>) -> Unit) = fetchTeachers(onResult)
 
     fun updateTeacher(
         id: String,
@@ -163,6 +187,8 @@ object Repo {
         name: String,
         parentId: String,
         teacherId: String,
+        age: Int,
+        emergencyContact: String,
         allergies: String,
         medicalNotes: String,
         onComplete: (Boolean, String?) -> Unit
@@ -171,9 +197,12 @@ object Repo {
             "name" to name,
             "parentId" to parentId,
             "teacherId" to teacherId,
+            "age" to age,
+            "emergencyContact" to emergencyContact,
             "allergies" to allergies,
             "medicalNotes" to medicalNotes
         )
+
         childrenRef.add(data)
             .addOnSuccessListener { onComplete(true, null) }
             .addOnFailureListener { e -> onComplete(false, e.message) }
@@ -202,7 +231,7 @@ object Repo {
         childId: String,
         date: LocalDate,
         present: Boolean,
-        onComplete: ((Boolean, String?) -> Unit)? = null
+        onComplete: ((Boolean, String?) -> Unit)?
     ) {
         val docId = "${childId}_${date.format(DateTimeFormatter.ISO_DATE)}"
         val data = mapOf(
@@ -273,7 +302,7 @@ object Repo {
             .addOnFailureListener { onResult(emptyList()) }
     }
 
-    // ---------------- Messages / Announcements ----------------
+    // ---------------- Messaging ----------------
     fun postAnnouncement(content: String, onComplete: (Boolean, String?) -> Unit) {
         val data = mapOf(
             "fromParentId" to null,
@@ -306,6 +335,8 @@ object Repo {
                 name = doc.getString("name") ?: "",
                 parentId = doc.getString("parentId") ?: "",
                 teacherId = doc.getString("teacherId") ?: "",
+                age = (doc.getLong("age") ?: 0).toInt(),
+                emergencyContact = doc.getString("emergencyContact") ?: "",
                 allergies = doc.getString("allergies") ?: "",
                 medicalNotes = doc.getString("medicalNotes") ?: ""
             )
@@ -344,7 +375,7 @@ object Repo {
             )
         }
 
-    // ---------------- In-memory lists (UI convenience caches) ----------------
+    // ---------------- UI lists (optional reactive caches) ----------------
     val uiTeachers = mutableStateListOf<Teacher>()
     val uiChildren = mutableStateListOf<Child>()
     val uiEvents = mutableStateListOf<Event>()
