@@ -35,4 +35,7 @@ sealed class Route(val r: String) {
     // ---------- Parent ----------
     data object ParentHome : Route("parent_home")
     data object ParentChildren : Route("parent_children")
+
+    data object ParentAttendance : Route("parent_attendance")
+
 }

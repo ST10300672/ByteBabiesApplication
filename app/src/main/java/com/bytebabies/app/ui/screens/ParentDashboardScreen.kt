@@ -13,6 +13,7 @@ import com.bytebabies.app.ui.components.FeatureCard
 import com.bytebabies.app.ui.components.TopBar
 import com.bytebabies.app.ui.components.bbGradient
 import androidx.compose.ui.graphics.Color
+import com.bytebabies.app.navigation.Route
 
 data class ParentFeature(
     val title: String,
@@ -38,8 +39,9 @@ fun ParentDashboardScreen(nav: NavHostController) {
             "Check today's attendance for your children",
             MaterialTheme.colorScheme.secondary,
             MaterialTheme.colorScheme.secondaryContainer,
-            "attendance"
+            route = "parent_attendance" // updated
         ),
+
         ParentFeature(
             "Events",
             "See upcoming events and notifications",
