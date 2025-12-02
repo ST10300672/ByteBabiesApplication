@@ -49,13 +49,15 @@ fun ParentDashboardScreen(nav: NavHostController) {
             MaterialTheme.colorScheme.tertiaryContainer,
             "events"
         ),
+
         ParentFeature(
-            "Meals & Orders",
-            "View daily meals and order for your children",
-            MaterialTheme.colorScheme.primary,
-            MaterialTheme.colorScheme.primaryContainer,
-            "meals"
+            "Announcements",
+            "View school announcements and messages",
+            MaterialTheme.colorScheme.secondary,
+            MaterialTheme.colorScheme.secondaryContainer,
+            Route.ParentAnnouncements.r // updated
         ),
+
         ParentFeature(
             "Messages",
             "Receive announcements and messages",
