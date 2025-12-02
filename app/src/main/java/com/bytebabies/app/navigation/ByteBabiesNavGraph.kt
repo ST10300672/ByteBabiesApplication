@@ -29,6 +29,10 @@ fun ByteBabiesNavGraph() {
         // ---------- Attendance Screen ----------
         composable(Route.AdminAttendance.r) { AttendanceDashboardScreen(navController) }
 
+        // ---------- Events & Notifications Screen ----------
+        composable(Route.AdminEvents.r) { EventNotificationsScreen(navController) }
+
+
 
         // ---------- Parent ----------
         composable(Route.ParentHome.r) { ParentDashboardScreen(navController) }

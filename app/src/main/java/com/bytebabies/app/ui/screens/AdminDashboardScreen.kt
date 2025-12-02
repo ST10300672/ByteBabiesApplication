@@ -72,14 +72,14 @@ fun AdminDashboardScreen(nav: NavHostController) {
         ),
 
 
-        // Events
         AdminFeature(
             title = "Events",
             description = "Create and manage events",
             primaryColor = MaterialTheme.colorScheme.primary,
             secondaryColor = MaterialTheme.colorScheme.primaryContainer,
-            route = Route.AdminHome.r // placeholder
+            route = Route.AdminEvents.r // link to EventNotificationsScreen
         ),
+
 
         // Meals & Orders
         AdminFeature(

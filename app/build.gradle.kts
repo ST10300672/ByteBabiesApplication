@@ -60,6 +60,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore:26.0.2")
     implementation("com.google.firebase:firebase-storage:20.1.0")
     implementation("com.google.firebase:firebase-analytics:21.3.0")
+    implementation("com.google.firebase:firebase-messaging")
 
 
     // Testing

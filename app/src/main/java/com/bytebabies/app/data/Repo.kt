@@ -415,11 +415,41 @@ object Repo {
             .addOnFailureListener { e -> onComplete(false, e.message) }
     }
 
+    // Update an existing event
+    fun updateEvent(
+        id: String,
+        title: String,
+        description: String,
+        date: LocalDate,
+        location: String,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
+        val data = mapOf(
+            "title" to title,
+            "description" to description,
+            "date" to date.format(DateTimeFormatter.ISO_DATE),
+            "location" to location
+        )
+        eventsRef.document(id).set(data)
+            .addOnSuccessListener { onComplete(true, null) }
+            .addOnFailureListener { e -> onComplete(false, e.message) }
+    }
+
+    // Delete an event
+    fun deleteEvent(id: String, onComplete: (Boolean, String?) -> Unit) {
+        eventsRef.document(id).delete()
+            .addOnSuccessListener { onComplete(true, null) }
+            .addOnFailureListener { e -> onComplete(false, e.message) }
+    }
+
+    // Fetch all events
     fun fetchEvents(onResult: (List<Event>) -> Unit) {
         eventsRef.get()
             .addOnSuccessListener { snap -> onResult(snap.toEventList()) }
             .addOnFailureListener { onResult(emptyList()) }
     }
+
+
 
     // ---------------- Messaging ----------------
     fun postAnnouncement(content: String, onComplete: (Boolean, String?) -> Unit) {
@@ -472,6 +502,7 @@ object Repo {
             )
         }
 
+    // ---------------- Helpers: QuerySnapshot -> Event ----------------
     private fun com.google.firebase.firestore.QuerySnapshot.toEventList(): List<Event> =
         documents.map { doc ->
             Event(
@@ -483,6 +514,7 @@ object Repo {
             )
         }
 
+
     private fun com.google.firebase.firestore.QuerySnapshot.toMessageList(): List<Message> =
         documents.map { doc ->
             Message(
@@ -493,6 +525,8 @@ object Repo {
                 timestamp = java.time.LocalDateTime.parse(doc.getString("timestamp"))
             )
         }
+
+
 
     // ---------------- UI lists (optional reactive caches) ----------------
     val uiTeachers = mutableStateListOf<Teacher>()

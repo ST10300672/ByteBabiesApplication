@@ -24,11 +24,11 @@ data class Child(
 )
 
 data class Event(
-    val id: String = UUID.randomUUID().toString(),
-    var title: String,
-    var description: String,
-    var date: LocalDate,
-    var location: String
+    val id: String = "",
+    val title: String = "",
+    val description: String = "",
+    val date: LocalDate = LocalDate.now(),
+    val location: String = ""
 )
 
 data class AttendanceRecord(
