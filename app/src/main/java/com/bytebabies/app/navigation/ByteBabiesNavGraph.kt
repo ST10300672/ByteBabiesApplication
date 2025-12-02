@@ -42,5 +42,7 @@ fun ByteBabiesNavGraph() {
 
         // ---------- Parent ----------
         composable(Route.ParentHome.r) { ParentDashboardScreen(navController) }
+        composable(Route.ParentChildren.r) { ParentChildrenScreen(navController) } // NEW
+
     }
 }

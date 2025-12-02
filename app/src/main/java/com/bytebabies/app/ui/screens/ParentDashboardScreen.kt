@@ -30,8 +30,9 @@ fun ParentDashboardScreen(nav: NavHostController) {
             "View your child's profile and details",
             MaterialTheme.colorScheme.primary,
             MaterialTheme.colorScheme.primaryContainer,
-            "children"
+            "parent_children" // updated to match Route.ParentChildren.r
         ),
+
         ParentFeature(
             "Attendance",
             "Check today's attendance for your children",
