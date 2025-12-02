@@ -68,6 +68,20 @@ object Repo {
             .addOnFailureListener { callback(false) }
     }
 
+    fun sendParentMessage(content: String, onComplete: (Boolean, String?) -> Unit) {
+        val parentId = currentParentId ?: return onComplete(false, "Parent not logged in")
+        val data = mapOf(
+            "fromParentId" to parentId,
+            "toAdmin" to true,
+            "content" to content,
+            "timestamp" to System.currentTimeMillis()
+        )
+        messagesRef.add(data)
+            .addOnSuccessListener { onComplete(true, null) }
+            .addOnFailureListener { e -> onComplete(false, e.message) }
+    }
+
+
     // ---------------- Firestore refs ----------------
     private val usersRef = db.collection("Users")
     private val teachersRef = db.collection("Teachers")
@@ -531,7 +545,14 @@ object Repo {
     // ---------------- Helpers: QuerySnapshot -> Message ----------------
     private fun com.google.firebase.firestore.QuerySnapshot.toMessageList(): List<Message> =
         this.documents.map { doc ->
-            val timestampMillis = doc.getLong("timestamp") ?: System.currentTimeMillis()
+            // Handle timestamp safely
+            val timestampMillis = when (val ts = doc.get("timestamp")) {
+                is Long -> ts
+                is Double -> ts.toLong()
+                is String -> ts.toLongOrNull() ?: System.currentTimeMillis()
+                else -> System.currentTimeMillis()
+            }
+
             Message(
                 id = doc.id,
                 content = doc.getString("content") ?: "",
@@ -542,7 +563,6 @@ object Repo {
                 toAdmin = doc.getBoolean("toAdmin") ?: false
             )
         }
-
 
 
 

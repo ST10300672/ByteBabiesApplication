@@ -41,6 +41,9 @@ sealed class Route(val r: String) {
 
     data object ParentEvents : Route("parent_events")
 
+    data object ParentMessages : Route("parent_messages")
+
+
 
 
 }

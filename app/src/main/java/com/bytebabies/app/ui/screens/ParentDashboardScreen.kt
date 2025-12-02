@@ -63,11 +63,12 @@ fun ParentDashboardScreen(nav: NavHostController) {
             "Receive announcements and messages",
             MaterialTheme.colorScheme.secondary,
             MaterialTheme.colorScheme.secondaryContainer,
-            "messages"
+            Route.ParentMessages.r // updated
         )
     )
 
-    Column(
+
+        Column(
         modifier = Modifier.fillMaxSize()
     ) {
         TopBar(title = "Parent Dashboard")
