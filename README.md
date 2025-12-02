@@ -9,12 +9,21 @@ It connects **Admins**, **Teachers**, and **Parents** through a unified digital 
 
 ###  Admin Module
 - **Parent & Child Management** – Add, edit, and assign parents, children, and teachers.  
-- **Attendance Tracking** – Mark daily attendance for children.  
-- **Event Management** – Create and announce school events with calendar integration.  
+- **Attendance Tracking** – Mark daily attendance for children, with automated notifications to parents if a child is absent.  
+- **Event Management** – Create, update, and announce school events with calendar integration.  
 - **Meal Planning** – Define and publish menus with dietary details.  
 - **Media Uploads** – Share classroom photos or videos with parental consent.  
 - **Messaging System** – Send announcements and receive messages from parents.  
 - **Payment Gateway (PayFast Sandbox)** – Manage and simulate tuition or meal payments securely.  
+
+**Admin Screenshots:**
+- Admin Dashboard: `![Admin Dashboard](screenshots/AdminDashboard.jpg)`
+- Manage Parents: `![Manage Parents](screenshots/AdminViewParentsScreen.jpg)`
+- Manage Teachers: `![Manage Teachers](screenshots/AdminTeachersScreen.jpg)`
+- Add/View Children: `![Children Management](screenshots/AdminAddChildScreen.jpg)`
+- Attendance: `![Attendance](screenshots/AdminAttendanceScreen.jpg)`
+- Events: `![Events](screenshots/AdminEventsScreen.jpg)`
+- Announcements & Messages: `![Messages](screenshots/AdminAnnouncementsScreen.jpg)`
 
 ---
 
@@ -27,13 +36,20 @@ It connects **Admins**, **Teachers**, and **Parents** through a unified digital 
 - **Messages** – Send messages to the admin and receive updates or alerts.  
 - **Payment Integration** – Pay school fees or meal charges via PayFast sandbox.  
 
+**Parent Screenshots:**
+- Parent Dashboard: `![Parent Dashboard](screenshots/ParentDashboardScreen.jpg)`
+- Child Profile: `![Child Profile](screenshots/ParentChildrenScreen.jpg)`
+- Attendance: `![Parent Attendance](screenshots/ParentAttendanceScreen.jpg)`
+- Events: `![Parent Events](screenshots/ParentsEventsScreen.jpg)`
+- Announcements & Messages: `![Parent Messages](screenshots/ParentsMessagesScreen.jpg)`
+- Meal Orders: `![Meal Orders](screenshots/ParentMealOrdersScreen.jpg)`
+
 ---
 
 ###  General Features
 - **Secure Authentication** – Role-based login (Admin or Parent).  
 - **Modern UI** – Material 3 design system with dynamic gradients and intuitive navigation.  
 - **Profile Switching** – Quickly sign out and switch between Admin and Parent roles.  
-
 
 ---
 
@@ -55,15 +71,14 @@ It connects **Admins**, **Teachers**, and **Parents** through a unified digital 
 ##  Folder Structure
 app/
 ├── data/
-│ └── Repo.kt # In-memory data repository
-├── model/ # Data models (Parent, Child, Event, etc.)
+│ └── Repo.kt # Firebase-powered repository with CRUD operations
+├── model/ # Data models (Parent, Child, Event, Message, Attendance, etc.)
 ├── navigation/
 │ └── Route.kt # Navigation routes
 ├── ui/
 │ ├── components/ # Reusable UI components
-│ └── screens/ # Feature screens (Admin & Parent)
+│ └── screens/ # Feature screens (Admin & Parent dashboards and CRUD screens)
 └── MainActivity.kt # Entry point
-
 
 ---
 
@@ -72,8 +87,9 @@ app/
 1. **Clone or download** the project:
    ```bash
    git clone https://github.com/<your-username>/ByteBabies.git
-Open the project in Android Studio (Giraffe or newer).
+   ```
+2. Open the project in Android Studio (Giraffe or newer).
+3. Allow Gradle sync to complete.
+4. Run on an emulator or connected device (Android 7.0+).
 
-Allow Gradle sync to complete.
 
-Run on an emulator or connected device (Android 7.0+).
