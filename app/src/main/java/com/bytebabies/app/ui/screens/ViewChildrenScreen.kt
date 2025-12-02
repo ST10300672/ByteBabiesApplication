@@ -13,6 +13,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.bytebabies.app.data.Repo
 import com.bytebabies.app.model.Child
+import com.bytebabies.app.model.Parent
+import com.bytebabies.app.model.Teacher
 import com.bytebabies.app.navigation.Route
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -20,12 +22,17 @@ import com.bytebabies.app.navigation.Route
 fun ViewChildrenScreen(navController: NavController) {
 
     var children by remember { mutableStateOf<List<Child>>(emptyList()) }
+    var parents by remember { mutableStateOf<List<Parent>>(emptyList()) }
+    var teachers by remember { mutableStateOf<List<Teacher>>(emptyList()) }
+
     var showEditDialog by remember { mutableStateOf(false) }
     var editingChild by remember { mutableStateOf<Child?>(null) }
 
-    // Fetch children from Firestore
+    // Fetch children, parents, and teachers
     LaunchedEffect(Unit) {
         Repo.fetchChildren { children = it }
+        Repo.fetchParents { parents = it }
+        Repo.fetchTeachers { teachers = it }
     }
 
     Scaffold(
@@ -54,8 +61,13 @@ fun ViewChildrenScreen(navController: NavController) {
                 .fillMaxSize()
         ) {
             items(children) { child ->
+                val parentName = parents.find { it.id == child.parentId }?.name ?: "Unknown Parent"
+                val teacherName = teachers.find { it.id == child.teacherId }?.name ?: "Unknown Teacher"
+
                 ChildRow(
                     child = child,
+                    parentName = parentName,
+                    teacherName = teacherName,
                     onDelete = {
                         Repo.deleteChild(child.id) { success, _ ->
                             if (success) {
@@ -119,7 +131,6 @@ fun ViewChildrenScreen(navController: NavController) {
             },
             confirmButton = {
                 TextButton(onClick = {
-                    // Update the child in Firestore
                     val updates = mapOf<String, Any>(
                         "name" to name,
                         "age" to (age.toIntOrNull() ?: editingChild!!.age),
@@ -130,7 +141,6 @@ fun ViewChildrenScreen(navController: NavController) {
 
                     Repo.updateChild(editingChild!!.id, updates) { success, _ ->
                         if (success) {
-                            // Update local list
                             children = children.map {
                                 if (it.id == editingChild!!.id) it.copy(
                                     name = name,
@@ -157,7 +167,13 @@ fun ViewChildrenScreen(navController: NavController) {
 }
 
 @Composable
-fun ChildRow(child: Child, onDelete: () -> Unit, onEdit: () -> Unit) {
+fun ChildRow(
+    child: Child,
+    parentName: String,
+    teacherName: String,
+    onDelete: () -> Unit,
+    onEdit: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -166,8 +182,8 @@ fun ChildRow(child: Child, onDelete: () -> Unit, onEdit: () -> Unit) {
     ) {
         Column(Modifier.padding(16.dp)) {
             Text("Name: ${child.name}", style = MaterialTheme.typography.titleMedium)
-            Text("Parent ID: ${child.parentId}")
-            Text("Teacher ID: ${child.teacherId}")
+            Text("Parent: $parentName")
+            Text("Teacher: $teacherName")
             Text("Age: ${child.age}")
             Text("Emergency Contact: ${child.emergencyContact}")
             Text("Allergies: ${child.allergies}")

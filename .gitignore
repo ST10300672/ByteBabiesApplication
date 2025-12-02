@@ -13,3 +13,10 @@
 .externalNativeBuild
 .cxx
 local.properties
+# Android + Gradle Ignore 
+.gradle/ 
+/build/ 
+/app/build/ 
+/local.properties 
+/.idea/ 
+*.iml 
