@@ -47,7 +47,7 @@ fun ParentDashboardScreen(nav: NavHostController) {
             "See upcoming events and notifications",
             MaterialTheme.colorScheme.tertiary,
             MaterialTheme.colorScheme.tertiaryContainer,
-            "events"
+            "parent_events"
         ),
 
         ParentFeature(
