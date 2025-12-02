@@ -7,8 +7,12 @@ import androidx.compose.runtime.setValue
 import com.bytebabies.app.model.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
 import java.math.BigDecimal
+import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 object Repo {
@@ -74,6 +78,8 @@ object Repo {
     private val ordersRef = db.collection("MealOrders")
     private val mediaRef = db.collection("Media")
     private val messagesRef = db.collection("Messages")
+    private val announcementsRef = db.collection("announcements")
+
 
     // ---------------- Parent Registration ----------------
     fun registerParent(
@@ -450,31 +456,38 @@ object Repo {
     }
 
 
+    // ---------------- Announcements ----------------
+    fun fetchAnnouncements(onResult: (List<Message>) -> Unit) {
+        announcementsRef.get()
+            .addOnSuccessListener { snapshot: QuerySnapshot ->
+                onResult(snapshot.toMessageList())
+            }
+            .addOnFailureListener { exception ->
+                onResult(emptyList())
+            }
+    }
 
-    // ---------------- Messaging ----------------
     fun postAnnouncement(content: String, onComplete: (Boolean, String?) -> Unit) {
         val data = mapOf(
-            "fromParentId" to null,
-            "toAdmin" to false,
             "content" to content,
-            "timestamp" to java.time.LocalDateTime.now().toString()
+            "timestamp" to System.currentTimeMillis() // milliseconds
         )
-        messagesRef.add(data)
+        announcementsRef.add(data)
             .addOnSuccessListener { onComplete(true, null) }
             .addOnFailureListener { e -> onComplete(false, e.message) }
     }
 
+    // ---------------- Messages ----------------
     fun fetchParentMessages(onResult: (List<Message>) -> Unit) {
-        messagesRef.whereEqualTo("toAdmin", true).get()
-            .addOnSuccessListener { snap -> onResult(snap.toMessageList()) }
-            .addOnFailureListener { onResult(emptyList()) }
+        messagesRef.get()
+            .addOnSuccessListener { snapshot: QuerySnapshot ->
+                onResult(snapshot.toMessageList())
+            }
+            .addOnFailureListener { exception ->
+                onResult(emptyList())
+            }
     }
 
-    fun fetchAnnouncements(onResult: (List<Message>) -> Unit) {
-        messagesRef.whereEqualTo("toAdmin", false).get()
-            .addOnSuccessListener { snap -> onResult(snap.toMessageList()) }
-            .addOnFailureListener { onResult(emptyList()) }
-    }
 
     // ---------------- Helpers: snapshot -> models ----------------
     private fun com.google.firebase.firestore.QuerySnapshot.toChildList(): List<Child> =
@@ -515,16 +528,21 @@ object Repo {
         }
 
 
+    // ---------------- Helpers: QuerySnapshot -> Message ----------------
     private fun com.google.firebase.firestore.QuerySnapshot.toMessageList(): List<Message> =
-        documents.map { doc ->
+        this.documents.map { doc ->
+            val timestampMillis = doc.getLong("timestamp") ?: System.currentTimeMillis()
             Message(
                 id = doc.id,
-                fromParentId = doc.getString("fromParentId"),
-                toAdmin = doc.getBoolean("toAdmin") ?: false,
                 content = doc.getString("content") ?: "",
-                timestamp = java.time.LocalDateTime.parse(doc.getString("timestamp"))
+                fromParentId = doc.getString("fromParentId"),
+                timestamp = Instant.ofEpochMilli(timestampMillis)
+                    .atZone(ZoneId.systemDefault())
+                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                toAdmin = doc.getBoolean("toAdmin") ?: false
             )
         }
+
 
 
 

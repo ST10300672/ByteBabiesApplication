@@ -32,6 +32,12 @@ fun ByteBabiesNavGraph() {
         // ---------- Events & Notifications Screen ----------
         composable(Route.AdminEvents.r) { EventNotificationsScreen(navController) }
 
+        // ---------- Admin: Messages & Announcements ----------
+        composable(Route.AdminAnnouncements.r) { AnnouncementsScreen(navController) }
+        composable(Route.AdminMessages.r) { AdminMessagesScreen(navController) }
+
+
+
 
 
         // ---------- Parent ----------

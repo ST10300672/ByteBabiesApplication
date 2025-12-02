@@ -38,13 +38,22 @@ data class AttendanceRecord(
     var present: Boolean
 )
 
-data class Message(
-    val id: String = UUID.randomUUID().toString(),
-    val fromParentId: String?,
-    val toAdmin: Boolean,
-    val content: String,
-    val timestamp: LocalDateTime = LocalDateTime.now()
+data class Announcement(
+    val id: String,
+    val title: String,
+    val message: String,
+    val timestamp: Long
 )
+
+
+data class Message(
+    val id: String,
+    val content: String,
+    val fromParentId: String?,
+    val timestamp: String, // keep as String
+    val toAdmin: Boolean = false
+)
+
 
 data class MediaItem(
     val id: String = UUID.randomUUID().toString(),

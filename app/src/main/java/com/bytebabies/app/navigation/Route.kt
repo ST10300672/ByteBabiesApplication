@@ -26,6 +26,14 @@ sealed class Route(val r: String) {
     data object AdminEvents : Route("admin_events")
 
 
+    // ---------- Admin: Messages & Announcements ----------
+    data object AdminAnnouncements : Route("admin_announcements")
+    // ---------- Admin Messages ----------
+    data object AdminMessages : Route("admin_messages")
+
+
+
+
 
 
     // ---------- Parent ----------

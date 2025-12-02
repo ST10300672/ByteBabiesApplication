@@ -96,7 +96,16 @@ fun AdminDashboardScreen(nav: NavHostController) {
             description = "Send updates to parents",
             primaryColor = MaterialTheme.colorScheme.tertiary,
             secondaryColor = MaterialTheme.colorScheme.tertiaryContainer,
-            route = Route.AdminHome.r // placeholder
+            route = Route.AdminAnnouncements.r // ✔ updated to correct route
+        ),
+
+        // ---------- Admin: Messages ----------
+        AdminFeature(
+            title = "Messages",
+            description = "View messages from parents",
+            primaryColor = MaterialTheme.colorScheme.secondary,
+            secondaryColor = MaterialTheme.colorScheme.secondaryContainer,
+            route = Route.AdminMessages.r // Navigates to AdminMessagesScreen
         ),
 
         // Media Uploads
