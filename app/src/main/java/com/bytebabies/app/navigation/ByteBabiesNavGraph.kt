@@ -26,6 +26,9 @@ fun ByteBabiesNavGraph() {
         composable(Route.AdminViewChildren.r) { ViewChildrenScreen(navController) } // NEW
         composable(Route.AdminViewParents.r) { ViewParentsScreen(navController) }
 
+        // ---------- Attendance Screen ----------
+        composable(Route.AdminAttendance.r) { AttendanceDashboardScreen(navController) }
+
 
         // ---------- Parent ----------
         composable(Route.ParentHome.r) { ParentDashboardScreen(navController) }

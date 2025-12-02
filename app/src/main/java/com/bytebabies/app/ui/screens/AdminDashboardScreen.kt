@@ -68,8 +68,9 @@ fun AdminDashboardScreen(nav: NavHostController) {
             description = "Mark and review attendance",
             primaryColor = MaterialTheme.colorScheme.tertiary,
             secondaryColor = MaterialTheme.colorScheme.tertiaryContainer,
-            route = Route.AdminHome.r // placeholder
+            route = Route.AdminAttendance.r // keep route same, screen name changes in NavGraph
         ),
+
 
         // Events
         AdminFeature(

@@ -14,9 +14,15 @@ sealed class Route(val r: String) {
     data object AdminViewParents : Route("admin_view_parents")
 
 
+
     // ---------- Admin: Children ----------
     data object AdminAddChild : Route("admin_add_child")
     data object AdminViewChildren : Route("admin_view_children")   // NEW
+
+    // ---------- Admin: Attendance ----------
+    data object AdminAttendance : Route("admin_attendance")
+
+
 
     // ---------- Parent ----------
     data object ParentHome : Route("parent_home")

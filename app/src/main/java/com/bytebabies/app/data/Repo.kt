@@ -275,12 +275,14 @@ object Repo {
             .addOnFailureListener { e -> onComplete(false, e.message) }
     }
 
-    // ---------------- Attendance ----------------
+    // ---------------- Attendance Tracking ----------------
+
+    // Mark attendance for a child (Admin or Teacher)
     fun markAttendance(
         childId: String,
         date: LocalDate,
         present: Boolean,
-        onComplete: ((Boolean, String?) -> Unit)?
+        onComplete: ((Boolean, String?) -> Unit)? = null
     ) {
         val docId = "${childId}_${date.format(DateTimeFormatter.ISO_DATE)}"
         val data = mapOf(
@@ -289,10 +291,42 @@ object Repo {
             "present" to present
         )
         attendanceRef.document(docId).set(data)
-            .addOnSuccessListener { onComplete?.invoke(true, null) }
+            .addOnSuccessListener {
+                onComplete?.invoke(true, null)
+                if (!present) {
+                    // Notify parent if absent
+                    fetchChildById(childId) { child ->
+                        child?.let {
+                            fetchParentById(it.parentId) { parent ->
+                                parent?.let { p ->
+                                    sendAbsenceNotification(p.id, it.name, date)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             .addOnFailureListener { e -> onComplete?.invoke(false, e.message) }
     }
 
+    // Fetch attendance for a specific child
+    fun fetchAttendanceForChild(childId: String, onResult: (List<AttendanceRecord>) -> Unit) {
+        attendanceRef.whereEqualTo("childId", childId).get()
+            .addOnSuccessListener { snap ->
+                val list = snap.documents.map { d ->
+                    AttendanceRecord(
+                        id = d.id,
+                        childId = d.getString("childId") ?: "",
+                        date = LocalDate.parse(d.getString("date")),
+                        present = d.getBoolean("present") ?: false
+                    )
+                }
+                onResult(list)
+            }
+            .addOnFailureListener { onResult(emptyList()) }
+    }
+
+    // Fetch attendance for a specific date (e.g., today)
     fun fetchAttendanceForDate(date: LocalDate, onResult: (List<AttendanceRecord>) -> Unit) {
         val today = date.format(DateTimeFormatter.ISO_DATE)
         attendanceRef.whereEqualTo("date", today).get()
@@ -310,21 +344,57 @@ object Repo {
             .addOnFailureListener { onResult(emptyList()) }
     }
 
-    fun fetchAttendanceForChild(childId: String, onResult: (List<AttendanceRecord>) -> Unit) {
-        attendanceRef.whereEqualTo("childId", childId).get()
-            .addOnSuccessListener { snap ->
-                val list = snap.documents.map { d ->
-                    AttendanceRecord(
-                        id = d.id,
-                        childId = d.getString("childId") ?: "",
-                        date = LocalDate.parse(d.getString("date")),
-                        present = d.getBoolean("present") ?: false
+    // Fetch child by ID (helper)
+    fun fetchChildById(childId: String, onResult: (Child?) -> Unit) {
+        childrenRef.document(childId).get()
+            .addOnSuccessListener { doc ->
+                if (doc.exists()) {
+                    val child = Child(
+                        id = doc.id,
+                        name = doc.getString("name") ?: "",
+                        parentId = doc.getString("parentId") ?: "",
+                        teacherId = doc.getString("teacherId") ?: "",
+                        age = (doc.getLong("age") ?: 0).toInt(),
+                        emergencyContact = doc.getString("emergencyContact") ?: "",
+                        allergies = doc.getString("allergies") ?: "",
+                        medicalNotes = doc.getString("medicalNotes") ?: ""
                     )
-                }
-                onResult(list)
+                    onResult(child)
+                } else onResult(null)
             }
-            .addOnFailureListener { onResult(emptyList()) }
+            .addOnFailureListener { onResult(null) }
     }
+
+    // Fetch parent by ID (helper)
+    fun fetchParentById(parentId: String, onResult: (Parent?) -> Unit) {
+        usersRef.document(parentId).get()
+            .addOnSuccessListener { doc ->
+                if (doc.exists()) {
+                    val parent = Parent(
+                        id = doc.id,
+                        name = doc.getString("name") ?: "",
+                        email = doc.getString("email") ?: "",
+                        phone = doc.getString("phone") ?: "",
+                        consentMedia = doc.getBoolean("consentMedia") ?: false
+                    )
+                    onResult(parent)
+                } else onResult(null)
+            }
+            .addOnFailureListener { onResult(null) }
+    }
+
+    // Send absence notification to parent (could be via in-app message)
+    fun sendAbsenceNotification(parentId: String, childName: String, date: LocalDate) {
+        val message = "Your child $childName was absent on ${date.format(DateTimeFormatter.ISO_DATE)}"
+        val data = mapOf(
+            "fromParentId" to null,
+            "toAdmin" to false,
+            "content" to message,
+            "timestamp" to java.time.LocalDateTime.now().toString()
+        )
+        messagesRef.add(data)
+    }
+
 
     // ---------------- Events ----------------
     fun createEvent(
