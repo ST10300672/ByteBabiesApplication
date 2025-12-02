@@ -50,16 +50,16 @@ fun AdminDashboardScreen(nav: NavHostController) {
             description = "View all registered children, edit or delete",
             primaryColor = MaterialTheme.colorScheme.secondary,
             secondaryColor = MaterialTheme.colorScheme.secondaryContainer,
-            route = "admin_view_children" // NEW route for ViewChildrenScreen
+            route = Route.AdminViewChildren.r    // ✔ fixed route
         ),
 
-        // Manage Parents
+        // ⭐ Manage Parents (NEW)
         AdminFeature(
             title = "Manage Parents",
-            description = "Add and edit parent profiles",
+            description = "Edit or remove parent profiles",
             primaryColor = MaterialTheme.colorScheme.secondary,
             secondaryColor = MaterialTheme.colorScheme.secondaryContainer,
-            route = "admin_parents" // placeholder for parent screen
+            route = Route.AdminViewParents.r     // ✔ correct route added
         ),
 
         // Attendance
@@ -128,3 +128,4 @@ fun AdminDashboardScreen(nav: NavHostController) {
         }
     }
 }
+

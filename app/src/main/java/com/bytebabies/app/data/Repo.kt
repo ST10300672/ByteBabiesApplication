@@ -127,6 +127,55 @@ object Repo {
     // 🔥 NEW — Alias for AddChildScreen compatibility
     fun getAllParents(onResult: (List<Parent>) -> Unit) = fetchParents(onResult)
 
+    // ---------------- Admin: Parent CRUD ----------------
+    fun updateParent(
+        id: String,
+        name: String,
+        email: String,
+        phone: String,
+        consentMedia: Boolean,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
+        val updateData = mapOf(
+            "name" to name,
+            "email" to email,
+            "phone" to phone,
+            "consentMedia" to consentMedia
+        )
+        usersRef.document(id).update(updateData)
+            .addOnSuccessListener { onComplete(true, null) }
+            .addOnFailureListener { e -> onComplete(false, e.message) }
+    }
+
+    fun deleteParent(
+        id: String,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
+        usersRef.document(id).delete()
+            .addOnSuccessListener { onComplete(true, null) }
+            .addOnFailureListener { e -> onComplete(false, e.message) }
+    }
+
+    // Optional: validate before deleting (if needed)
+    fun validateAndDeleteParent(
+        id: String,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
+        // Example: Check if parent has children
+        childrenRef.whereEqualTo("parentId", id).get()
+            .addOnSuccessListener { snap ->
+                if (snap.isEmpty) {
+                    deleteParent(id, onComplete)
+                } else {
+                    onComplete(false, "Cannot delete parent with registered children")
+                }
+            }
+            .addOnFailureListener { e ->
+                onComplete(false, e.message)
+            }
+    }
+
+
     // ---------------- Admin: Teachers CRUD ----------------
     fun createTeacher(
         name: String,
