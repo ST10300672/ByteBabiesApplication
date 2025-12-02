@@ -424,13 +424,17 @@ object Repo {
         location: String,
         onComplete: (Boolean, String?) -> Unit
     ) {
+        val doc = eventsRef.document() // generate ID first
+
         val data = mapOf(
+            "id" to doc.id,  // IMPORTANT
             "title" to title,
             "description" to description,
             "date" to date.format(DateTimeFormatter.ISO_DATE),
             "location" to location
         )
-        eventsRef.add(data)
+
+        doc.set(data)
             .addOnSuccessListener { onComplete(true, null) }
             .addOnFailureListener { e -> onComplete(false, e.message) }
     }

@@ -3,7 +3,9 @@ package com.bytebabies.app.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -11,8 +13,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.bytebabies.app.navigation.Route
 import com.bytebabies.app.ui.components.FeatureCard
-import com.bytebabies.app.ui.components.TopBar
 import com.bytebabies.app.ui.components.bbGradient
+import com.bytebabies.app.data.Repo
 
 data class AdminFeature(
     val title: String,
@@ -22,10 +24,10 @@ data class AdminFeature(
     val route: String
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminDashboardScreen(nav: NavHostController) {
+fun AdminDashboardScreen(navController: NavHostController) {
     val features = listOf(
-
         // Manage Teachers
         AdminFeature(
             title = "Manage Teachers",
@@ -50,16 +52,16 @@ fun AdminDashboardScreen(nav: NavHostController) {
             description = "View all registered children, edit or delete",
             primaryColor = MaterialTheme.colorScheme.secondary,
             secondaryColor = MaterialTheme.colorScheme.secondaryContainer,
-            route = Route.AdminViewChildren.r    // ✔ fixed route
+            route = Route.AdminViewChildren.r
         ),
 
-        // ⭐ Manage Parents (NEW)
+        // Manage Parents
         AdminFeature(
             title = "Manage Parents",
             description = "Edit or remove parent profiles",
             primaryColor = MaterialTheme.colorScheme.secondary,
             secondaryColor = MaterialTheme.colorScheme.secondaryContainer,
-            route = Route.AdminViewParents.r     // ✔ correct route added
+            route = Route.AdminViewParents.r
         ),
 
         // Attendance
@@ -68,58 +70,63 @@ fun AdminDashboardScreen(nav: NavHostController) {
             description = "Mark and review attendance",
             primaryColor = MaterialTheme.colorScheme.tertiary,
             secondaryColor = MaterialTheme.colorScheme.tertiaryContainer,
-            route = Route.AdminAttendance.r // keep route same, screen name changes in NavGraph
+            route = Route.AdminAttendance.r
         ),
 
-
+        // Events
         AdminFeature(
             title = "Events",
             description = "Create and manage events",
             primaryColor = MaterialTheme.colorScheme.primary,
             secondaryColor = MaterialTheme.colorScheme.primaryContainer,
-            route = Route.AdminEvents.r // link to EventNotificationsScreen
-        ),
-
-
-        // Meals & Orders
-        AdminFeature(
-            title = "Meals & Orders",
-            description = "Manage meals and view orders",
-            primaryColor = MaterialTheme.colorScheme.secondary,
-            secondaryColor = MaterialTheme.colorScheme.secondaryContainer,
-            route = Route.AdminHome.r // placeholder
+            route = Route.AdminEvents.r
         ),
 
         // Messages & Announcements
         AdminFeature(
-            title = "Messages & Announcements",
+            title = "Announcements",
             description = "Send updates to parents",
             primaryColor = MaterialTheme.colorScheme.tertiary,
             secondaryColor = MaterialTheme.colorScheme.tertiaryContainer,
-            route = Route.AdminAnnouncements.r // ✔ updated to correct route
+            route = Route.AdminAnnouncements.r
         ),
 
-        // ---------- Admin: Messages ----------
         AdminFeature(
             title = "Messages",
             description = "View messages from parents",
             primaryColor = MaterialTheme.colorScheme.secondary,
             secondaryColor = MaterialTheme.colorScheme.secondaryContainer,
-            route = Route.AdminMessages.r // Navigates to AdminMessagesScreen
-        ),
-
-        // Media Uploads
-        AdminFeature(
-            title = "Media Uploads",
-            description = "Share photos & videos with consent",
-            primaryColor = MaterialTheme.colorScheme.primary,
-            secondaryColor = MaterialTheme.colorScheme.primaryContainer,
-            route = Route.AdminHome.r // placeholder
+            route = Route.AdminMessages.r
         )
     )
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TopBar(title = "Admin Dashboard")
+        TopAppBar(
+            title = { Text("Admin Dashboard") },
+            actions = {
+                IconButton(onClick = {
+                    // Clear app session + firebase
+                    try {
+                        Repo.logout()
+                    } catch (_: Exception) { /* safety */ }
+
+                    // Ensure we remove current screens from backstack and navigate to login.
+                    navController.popBackStack() // pop current
+                    navController.navigate(Route.Login.r) {
+                        launchSingleTop = true
+                    }
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Logout,
+                        contentDescription = "Logout",
+                        tint = Color.White
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.mediumTopAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            )
+        )
 
         LazyColumn(
             modifier = Modifier
@@ -132,10 +139,9 @@ fun AdminDashboardScreen(nav: NavHostController) {
                     title = feature.title,
                     description = feature.description,
                     gradient = bbGradient(feature.primaryColor, feature.secondaryColor),
-                    onClick = { nav.navigate(feature.route) }
+                    onClick = { navController.navigate(feature.route) }
                 )
             }
         }
     }
 }
-
